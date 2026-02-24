@@ -2875,7 +2875,8 @@ func (a *Association) checkPartialReliabilityStatus(chunkPayload *chunkPayloadDa
 	// PR-SCTP
 	if stream, ok := a.streams[chunkPayload.streamIdentifier]; ok { //nolint:nestif
 		stream.lock.RLock()
-		if stream.reliabilityType == ReliabilityTypeRexmit {
+		switch stream.reliabilityType {
+		case ReliabilityTypeRexmit:
 			if chunkPayload.nSent >= stream.reliabilityValue {
 				chunkPayload.setAbandoned(true)
 				a.rackRemove(chunkPayload)
@@ -2884,7 +2885,7 @@ func (a *Association) checkPartialReliabilityStatus(chunkPayload *chunkPayloadDa
 					a.name, chunkPayload.tsn, chunkPayload.payloadType, chunkPayload.nSent,
 				)
 			}
-		} else if stream.reliabilityType == ReliabilityTypeTimed {
+		case ReliabilityTypeTimed:
 			elapsed := int64(time.Since(chunkPayload.since).Seconds() * 1000)
 			if elapsed >= int64(stream.reliabilityValue) {
 				chunkPayload.setAbandoned(true)
